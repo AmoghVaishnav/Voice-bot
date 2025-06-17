@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Amogh Voicebot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #e6f0ff; /* soft blue */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #chat-container {
+      background: white;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 600px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    #messages {
+      min-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    #input-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: none;
+      background-color: #005eff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .thinking {
+      font-style: italic;
+      font-weight: 500;
+      color: #888;
+      margin-top: 5px;
+    }
+
+    .mic-icon {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      color: #005eff;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <div class="thinking" id="thinking" style="display: none;">Thinking...</div>
+    <div id="input-area">
+      <input type="text" id="user-input" placeholder="Ask me anything..." />
+      <button onclick="sendMessage()">Send</button>
+      <button class="mic-icon" onclick="startListening()">🎤</button>
+    </div>
+  </div>
+
+  <script>
+    const userInput = document.getElementById("user-input");
+    const messagesDiv = document.getElementById("messages");
+    const thinking = document.getElementById("thinking");
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+      appendMessage("You", message);
+      userInput.value = "";
+      thinking.style.display = "block";
+
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await response.json();
+      thinking.style.display = "none";
+      appendMessage("Amogh", data.response);
+    }
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("message");
+      msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        userInput.value = transcript;
+        sendMessage();
+      };
+
+      recognition.start();
+    }
+  </script>
+</body>
+</html>
