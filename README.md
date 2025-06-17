@@ -70,3 +70,8 @@ Flask app sends message + system prompt to OpenAI API →
 Receives reply →
 Returns JSON response →
 Frontend speaks & displays it
+
+
+##Demo
+
+Click here to checkout the demo: https://youtu.be/84eXTb4hpAM?feature=shared
